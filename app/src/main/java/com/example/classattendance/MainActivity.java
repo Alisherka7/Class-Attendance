@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//
+
         login = (EditText)findViewById(R.id.login);
         password = (EditText)findViewById(R.id.password);
         loginButton = (Button)findViewById(R.id.loginButton);
@@ -35,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
         Realm.init(this);
         App app = new App(new AppConfiguration.Builder(AppId).build());
+        
+ //     MongoDB Realm Login Rrequest
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
