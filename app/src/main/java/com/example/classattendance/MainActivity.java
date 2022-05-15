@@ -22,7 +22,6 @@ public class MainActivity extends AppCompatActivity {
     Button loginButton;
     TextView signup;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -46,12 +45,12 @@ public class MainActivity extends AppCompatActivity {
                     public void onResult(App.Result<User> result) {
                         if(result.isSuccess()) {
                             Log.v("User", "Logged success");
+                            MongoDBRealm i = new MongoDBRealm();
                         }else{
                             Log.v("User", "Failed");
                         }
                     }
                 });
-
             }
         });
 
@@ -61,8 +60,5 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
-
-
     }
 }
