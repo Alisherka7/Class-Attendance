@@ -2,5 +2,11 @@
     <string name="app_name">Class Attendance</string>
     <string name="login">Login</string>
     <string name="password">Password</string>
+    <string name="passwordConfirm">Confirm Password</string>
     <string name="register">New Student? Register Now</string>
+    <string name="registerActivityName">회원 가입</string>
+    <string name="registrationButton">SignUp</string>
+    <string name="backToLogin">Back to Login</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="server_client_id">390653327986-om0oh0d9tbttfd660013oqfqruhnf6s2.apps.googleusercontent.com</string>
 </resources>
