@@ -13,6 +13,8 @@
         <entry key="app/src/main/res/layout/activity_profile.xml" value="0.15946807861328127" />
         <entry key="app/src/main/res/layout/activity_registration.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_schedule.xml" value="0.17083333333333334" />
+        <entry key="app/src/main/res/layout/ic_launcher_background.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/ic_launcher_foreground.xml" value="0.1" />
       </map>
     </option>
   </component>
