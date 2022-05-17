@@ -2,10 +2,15 @@ package com.example.classattendance;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -13,6 +18,7 @@ import android.widget.TextView;
 
 import org.bson.Document;
 
+import java.io.ByteArrayOutputStream;
 import java.lang.annotation.Documented;
 import java.sql.SQLOutput;
 
@@ -38,6 +44,7 @@ public class ProfileActivity extends AppCompatActivity {
     MongoClient mongoClient;
     MongoDatabase mongoDatabase;
     MongoCollection<Document> mongoCollection;
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
 
     @Override
@@ -48,7 +55,7 @@ public class ProfileActivity extends AppCompatActivity {
         textView = (TextView) findViewById(R.id.textView);
         logout = (Button)findViewById(R.id.logOut);
         userId = sharedPreferences.getString("userId", "");
-
+        Document studentData = new Document().append("studentId", userId);
 
         Realm.init(this);
         app = new App(new AppConfiguration.Builder(AppId).build());
@@ -57,11 +64,32 @@ public class ProfileActivity extends AppCompatActivity {
             public void onResult(App.Result<User> result) {
                 user = app.currentUser();
                 mongoClient = user.getMongoClient("mongodb-atlas");
-                mongoDatabase = mongoClient.getDatabase("attendace");
+                mongoDatabase = mongoClient.getDatabase("attendance");
                 mongoCollection = mongoDatabase.getCollection("student");
+                mongoCollection.findOne(studentData).getAsync(userD -> {
+                    if(userD.isSuccess()){
+                        Document student = userD.get();
+                        textView.setText(student.getString("name") + "\n" + student.getString("lastName"));
+                        Log.v("User", "Found");
+                    }else{
+                        Log.v("User", "Error" + userD.getError());
+                    }
+                });
                 Log.v("User", "Database Connected");
+                String[] projection = { MediaStore.Images.Media.DATA };
+                for(String i : projection){
+                    System.out.println(i);
+                }
+                String res = getFileToByte(String.valueOf("drawable://" + R.drawable.qwerty));
+                mongoCollection.insertOne(new Document("studentId", userId).append("photo","hi")).getAsync(r -> {
+                    if(r.isSuccess()){
+                        Log.v("User", "Inserted done");
+                    }else{
+                        Log.v("User", "Error " + r.getError());
+                    }
+                });
             }
-        })
+        });
 
 
 
@@ -77,7 +105,23 @@ public class ProfileActivity extends AppCompatActivity {
                 finish();
             }
         });
-
-        System.out.println("Profile activity ->" + i);
+    }
+    // Put the image file path into this method
+    public static String getFileToByte(String filePath){
+        Bitmap bmp = null;
+        ByteArrayOutputStream bos = null;
+        byte[] bt = null;
+        String encodeString = null;
+        try{
+            bmp = BitmapFactory.decodeFile(filePath);
+            bos = new ByteArrayOutputStream();
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+            bt = bos.toByteArray();
+            encodeString = Base64.encodeToString(bt, Base64.DEFAULT);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return encodeString;
     }
 }
