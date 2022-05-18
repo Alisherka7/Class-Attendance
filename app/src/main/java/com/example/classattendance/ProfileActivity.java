@@ -9,19 +9,14 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
-
 import org.bson.Document;
-
 import java.io.ByteArrayOutputStream;
-import java.lang.annotation.Documented;
-import java.sql.SQLOutput;
-
 import io.realm.Realm;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppConfiguration;
@@ -34,11 +29,12 @@ import io.realm.mongodb.mongo.MongoDatabase;
 public class ProfileActivity extends AppCompatActivity {
 
     SharedPreferences sharedPreferences;
-    TextView textView;
+    TextView studentName, studentLastName, studentMajor;
     String userId = "";
     String AppId = "application-0-zzrvt";
     String ApiKey = "FAzsYOpI23DJjV5hIawVdoelTgpOq8KyTDoUvfdxDHqNWJdehVuaGViJMW2qHkxY";
-    Button logout;
+    Button logout, classAttandanceButton, scheduleButton;
+    ImageView studentImg;
     App app;
     User user;
     MongoClient mongoClient;
@@ -52,11 +48,15 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
         sharedPreferences = getSharedPreferences("currentUserId", Context.MODE_PRIVATE);
-        textView = (TextView) findViewById(R.id.textView);
+        studentName = (TextView) findViewById(R.id.studentName);
+        studentLastName = (TextView) findViewById(R.id.studentLastName);
+        studentImg = (ImageView)findViewById(R.id.studentImg);
+        studentMajor = (TextView)findViewById(R.id.studentMajor);
+        classAttandanceButton = (Button)findViewById(R.id.classAttendanceButton);
+        scheduleButton = (Button)findViewById(R.id.scheduleButton);
         logout = (Button)findViewById(R.id.logOut);
         userId = sharedPreferences.getString("userId", "");
         Document studentData = new Document().append("studentId", userId);
-
         Realm.init(this);
         app = new App(new AppConfiguration.Builder(AppId).build());
         app.loginAsync(Credentials.apiKey(ApiKey), new App.Callback<User>() {
@@ -69,31 +69,31 @@ public class ProfileActivity extends AppCompatActivity {
                 mongoCollection.findOne(studentData).getAsync(userD -> {
                     if(userD.isSuccess()){
                         Document student = userD.get();
-                        textView.setText(student.getString("name") + "\n" + student.getString("lastName"));
+                        studentName.setText(student.getString("name"));
+                        studentLastName.setText(student.getString("lastName"));
+                        studentMajor.setText(student.getString("major"));
+                        Bitmap bMap = base64ToImg(student.getString("studentImg"));
+                        studentImg.setImageBitmap(bMap);
                         Log.v("User", "Found");
                     }else{
                         Log.v("User", "Error" + userD.getError());
                     }
                 });
                 Log.v("User", "Database Connected");
-                String[] projection = { MediaStore.Images.Media.DATA };
-                for(String i : projection){
-                    System.out.println(i);
-                }
-                String res = getFileToByte(String.valueOf("drawable://" + R.drawable.qwerty));
-                mongoCollection.insertOne(new Document("studentId", userId).append("photo","hi")).getAsync(r -> {
-                    if(r.isSuccess()){
-                        Log.v("User", "Inserted done");
-                    }else{
-                        Log.v("User", "Error " + r.getError());
-                    }
-                });
+
+//                Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.qwerty);
+//                String stringImg = imageToBase64(bitmap);
+//                mongoCollection.insertOne(new Document("studentId", userId).append("photo",stringImg)).getAsync(r -> {
+//                    if(r.isSuccess()){
+//                        Log.v("User", "Inserted done");
+//                    }else{
+//                        Log.v("User", "Error " + r.getError());
+//                    }
+//                });
             }
         });
 
-
-
-
+        // LogOut button
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -105,23 +105,42 @@ public class ProfileActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        // Check Attendance
+        classAttandanceButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(ProfileActivity.this, AttendanceActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        // Schedule Button
+        scheduleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(ProfileActivity.this, ScheduleActivity.class);
+                startActivity(intent);
+            }
+        });
     }
-    // Put the image file path into this method
-    public static String getFileToByte(String filePath){
-        Bitmap bmp = null;
-        ByteArrayOutputStream bos = null;
-        byte[] bt = null;
-        String encodeString = null;
-        try{
-            bmp = BitmapFactory.decodeFile(filePath);
-            bos = new ByteArrayOutputStream();
-            bmp.compress(Bitmap.CompressFormat.JPEG, 100, bos);
-            bt = bos.toByteArray();
-            encodeString = Base64.encodeToString(bt, Base64.DEFAULT);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-        return encodeString;
+    // Put the image bitmap
+    public static String imageToBase64(Bitmap bitmap){
+        //encode image to base64 string
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] imageBytes = baos.toByteArray();
+        String imageString = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+        return imageString;
     }
+
+    // Base64 to Image
+    public static Bitmap base64ToImg(String base64){
+        byte[] imageBytes = Base64.decode(base64, Base64.DEFAULT);
+        Bitmap decodedImage = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+        return decodedImage;
+    }
+
+
 }
